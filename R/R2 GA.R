@@ -45,6 +45,60 @@ data_change <- data %>%
 change_score_cols <- paste0("change_", score_columns)
 
 # ==========================================
+# STAGE 1.1: BASELINE DEMOGRAPHIC PROFILING (TABLE 1)
+# ==========================================
+cat("\n[Info] Generating Baseline Demographic Profiling (Intervention vs Control)...\n")
+
+baseline_data <- data %>% filter(TIME == 0)
+
+# Define variables to profile
+demo_vars_cat <- c("Gender", "Live_With", "Parent_Occupation", "SocEco_Status", "Communication_Parent_Style", "Gaming_Duration")
+baseline_summary <- list()
+
+# Age (Continuous variable -> Independent T-test)
+age_t <- t.test(Age ~ GROUP, data = baseline_data)
+baseline_summary[["Age"]] <- data.frame(
+  Variable = "Age (Mean ± SD)",
+  Category = "-",
+  Control = sprintf("%.2f ± %.2f", mean(baseline_data$Age[baseline_data$GROUP=="Control"], na.rm=TRUE), sd(baseline_data$Age[baseline_data$GROUP=="Control"], na.rm=TRUE)),
+  Intervention = sprintf("%.2f ± %.2f", mean(baseline_data$Age[baseline_data$GROUP=="Intervention"], na.rm=TRUE), sd(baseline_data$Age[baseline_data$GROUP=="Intervention"], na.rm=TRUE)),
+  P_Value = as.character(round(age_t$p.value, 4)),
+  stringsAsFactors = FALSE
+)
+
+# Categorical variables -> Chi-Square Test
+for (v in demo_vars_cat) {
+  if(v %in% colnames(baseline_data)) {
+    tab <- table(baseline_data[[v]], baseline_data$GROUP)
+    
+    # Suppress warnings for approximations with small sample sizes
+    test_res <- suppressWarnings(chisq.test(tab))
+    prop_tab <- prop.table(tab, margin = 2) * 100
+    
+    for(cat_level in rownames(tab)) {
+      ctrl_val <- sprintf("%d (%.1f%%)", tab[cat_level, "Control"], prop_tab[cat_level, "Control"])
+      intv_val <- sprintf("%d (%.1f%%)", tab[cat_level, "Intervention"], prop_tab[cat_level, "Intervention"])
+      
+      # Show p-value only on the first category row for a clean table look
+      pval_display <- ifelse(cat_level == rownames(tab)[1], as.character(round(test_res$p.value, 4)), "")
+      
+      baseline_summary[[paste(v, cat_level)]] <- data.frame(
+        Variable = ifelse(cat_level == rownames(tab)[1], v, ""),
+        Category = cat_level,
+        Control = ctrl_val,
+        Intervention = intv_val,
+        P_Value = pval_display,
+        stringsAsFactors = FALSE
+      )
+    }
+  }
+}
+table_baseline <- bind_rows(baseline_summary)
+cat("--- Baseline Characteristics (Table 1) ---\n")
+print(table_baseline, row.names = FALSE)
+
+
+# ==========================================
 # STAGE 1.5: BASELINE DEMOGRAPHIC CORRELATION HEATMAP
 # ==========================================
 cat("\n[Info] Generating Demographic vs Baseline Outcomes Correlation Heatmap...\n")
@@ -77,8 +131,8 @@ if("Gaming_Duration" %in% colnames(baseline_data)) {
   )
 }
 
-# Select relevant numeric columns for correlation
-cor_vars <- c("Age", "Gender_Num", "Comm_Style_Num", "SocEco_Num", "Gaming_Dur_Num", "Total_SDQ", "GO_Bijak", "Assertiveness", "Total_GAS", "Total_BPAQ")
+# Select relevant numeric columns for correlation (ADDED BPAQ_Anger)
+cor_vars <- c("Age", "Gender_Num", "Comm_Style_Num", "SocEco_Num", "Gaming_Dur_Num", "Total_SDQ", "GO_Bijak", "Assertiveness", "Total_GAS", "Total_BPAQ", "BPAQ_Anger")
 
 # Check if columns exist
 valid_cor_vars <- cor_vars[cor_vars %in% colnames(baseline_data)]
@@ -134,6 +188,25 @@ if("Gaming_Dur_Num" %in% colnames(baseline_data)) {
   cat(sprintf("3. Gaming Duration vs Total SDQ  : rho = %.3f, p-value = %.4f %s\n", cor_sdq$estimate, cor_sdq$p.value, ifelse(cor_sdq$p.value < 0.05, "*", "")))
   cat(sprintf("4. Gaming Duration vs Wise Gaming: rho = %.3f, p-value = %.4f %s\n", cor_gobijak$estimate, cor_gobijak$p.value, ifelse(cor_gobijak$p.value < 0.05, "*", "")))
   cat("Note: Positive 'rho' for GAS/BPAQ/SDQ means longer duration is associated with higher problem scores. Negative 'rho' for Wise Gaming means longer duration is associated with lower wise behavior.\n")
+}
+
+# ==========================================
+# STAGE 1.7: SPECIFIC BASELINE CORRELATIONS SOR GENDER & SES
+# ==========================================
+cat("\n[Info] Computing exact rho and p-values for Gender & SES...\n")
+# Gender (0 = Male, 1 = Female) vs Anger and Total BPAQ
+cor_gender_anger <- cor.test(baseline_data$Gender_Num, baseline_data$BPAQ_Anger, method = "spearman", exact = FALSE)
+cor_gender_bpaq <- cor.test(baseline_data$Gender_Num, baseline_data$Total_BPAQ, method = "spearman", exact = FALSE)
+
+# SES (0 = Lower/Same, 1 = Higher) vs Wise Gaming (GO_Bijak)
+if("SocEco_Num" %in% colnames(baseline_data)) {
+  baseline_data_ses <- baseline_data %>% filter(!is.na(SocEco_Num))
+  cor_ses_bijak <- cor.test(baseline_data_ses$SocEco_Num, baseline_data_ses$GO_Bijak, method = "spearman", exact = FALSE)
+  
+  cat("--- Specific Baseline Correlations for Gender & SES ---\n")
+  cat(sprintf("1. Gender vs BPAQ Anger     : rho = %.3f, p-value = %.4f %s\n", cor_gender_anger$estimate, cor_gender_anger$p.value, ifelse(cor_gender_anger$p.value < 0.05, "*", "")))
+  cat(sprintf("2. Gender vs Total BPAQ     : rho = %.3f, p-value = %.4f %s\n", cor_gender_bpaq$estimate, cor_gender_bpaq$p.value, ifelse(cor_gender_bpaq$p.value < 0.05, "*", "")))
+  cat(sprintf("3. SES vs Wise Gaming       : rho = %.3f, p-value = %.4f %s\n", cor_ses_bijak$estimate, cor_ses_bijak$p.value, ifelse(cor_ses_bijak$p.value < 0.05, "*", "")))
 }
 
 
@@ -380,20 +453,6 @@ table_mediation <- bind_rows(med_assert, med_bijak)
 
 
 # ==========================================
-# STAGE 11: EXPORT TEXT SUMMARY
-# ==========================================
-sink("Publication_Results_Summary.txt")
-cat("--- Linear Mixed-Effects Models (LMM) Summary - Primary ---\n")
-print(table_lmm, row.names = FALSE)
-cat("\n\n--- Causal Mediation Analysis Results ---\n")
-print(table_mediation, row.names = FALSE)
-cat("\n\n--- Specific Timepoint Differences (Primary Outcomes) ---\n")
-forest_out <- forest_data %>% dplyr::select(Variable, Timepoint, Hedges_g, CI_low, CI_high, p_value, Direction) %>% mutate(across(c(Hedges_g, CI_low, CI_high, p_value), ~round(., 4)))
-print(forest_out, row.names = FALSE)
-sink()
-
-
-# ==========================================
 # STAGE 13: DISSECTING AGGRESSION SUB-VARIABLES (FIXED DIRECTION)
 # ==========================================
 cat("\n[Info] Dissecting Aggression Sub-variables (Direction Synchronization)...\n")
@@ -618,7 +677,11 @@ cat("\n=======================================================\n")
 cat("          STATISTICAL SUMMARY FOR PUBLICATION          \n")
 cat("=======================================================\n\n")
 
-cat("--- 1. Assumption Checks (Normality & Homogeneity) ---\n")
+cat("--- 0. Baseline Characteristics (Table 1) ---\n")
+print(table_baseline, row.names = FALSE)
+cat("Note: P-values > 0.05 indicate successful randomization / baseline equivalence between groups.\n")
+
+cat("\n--- 1. Assumption Checks (Normality & Homogeneity) ---\n")
 print(table_assumptions, row.names = FALSE)
 
 cat("\n--- 2. Mann-Whitney U Test (Overall Change) ---\n")
@@ -630,6 +693,15 @@ if(exists("cor_gas")) {
   cat(sprintf("   Gaming Duration vs Total BPAQ : rho = %.3f, p-value = %.4f %s\n", cor_bpaq$estimate, cor_bpaq$p.value, ifelse(cor_bpaq$p.value < 0.05, "*", "")))
   cat(sprintf("   Gaming Duration vs Total SDQ  : rho = %.3f, p-value = %.4f %s\n", cor_sdq$estimate, cor_sdq$p.value, ifelse(cor_sdq$p.value < 0.05, "*", "")))
   cat(sprintf("   Gaming Duration vs Wise Gaming: rho = %.3f, p-value = %.4f %s\n", cor_gobijak$estimate, cor_gobijak$p.value, ifelse(cor_gobijak$p.value < 0.05, "*", "")))
+}
+
+cat("\n--- 3.5 Specific Baseline Correlations for Gender & SES ---\n")
+if(exists("cor_gender_anger")) {
+  cat(sprintf("   Gender vs BPAQ Anger     : rho = %.3f, p-value = %.4f %s\n", cor_gender_anger$estimate, cor_gender_anger$p.value, ifelse(cor_gender_anger$p.value < 0.05, "*", "")))
+  cat(sprintf("   Gender vs Total BPAQ     : rho = %.3f, p-value = %.4f %s\n", cor_gender_bpaq$estimate, cor_gender_bpaq$p.value, ifelse(cor_gender_bpaq$p.value < 0.05, "*", "")))
+  if(exists("cor_ses_bijak")) {
+    cat(sprintf("   SES vs Wise Gaming       : rho = %.3f, p-value = %.4f %s\n", cor_ses_bijak$estimate, cor_ses_bijak$p.value, ifelse(cor_ses_bijak$p.value < 0.05, "*", "")))
+  }
 }
 
 cat("\n--- 4. Linear Mixed-Effects Models (LMM) Summary - Primary ---\n")
