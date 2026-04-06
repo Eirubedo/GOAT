@@ -467,6 +467,7 @@ med_bijak <- data.frame(
 
 table_mediation <- bind_rows(med_assert, med_bijak)
 
+# (Visualisasi terpisah dihapus, dipindahkan menjadi satu panel di STAGE 15)
 
 # ==========================================
 # STAGE 13: DISSECTING AGGRESSION SUB-VARIABLES (FIXED DIRECTION)
@@ -635,11 +636,53 @@ if(length(missing_items) > 0) {
   
   table_sub_mediation <- bind_rows(med_selfreg, med_healthy, med_lifebal)
   
-  cat("\n--- Mediation Analysis Results per Wise Gaming Sub-Dimension ---\n")
+  cat("\n--- Hasil Analisis Mediasi per Sub-Dimensi Wise Gaming ---\n")
   print(table_sub_mediation, row.names = FALSE)
   write.csv(table_sub_mediation, "WiseGaming_SubDimension_Mediation.csv", row.names = FALSE)
   
-  cat("\n[Success] Wise Gaming analysis completed. Output saved to CSV.\n")
+  cat("\n[Info] Generating Combined Single-Panel Mediation Plot (Figure 3)...\n")
+  
+  # Ekstrak data model mediasi ke dalam data.frame untuk ggplot2
+  extract_med <- function(med_obj, name) {
+    data.frame(
+      Mediator = name,
+      Effect = c("Total Effect", "ADE (Direct Effect)", "ACME (Indirect Effect)"),
+      Estimate = c(med_obj$tau.coef, med_obj$z0, med_obj$d1),
+      CI_lower = c(med_obj$tau.ci[1], med_obj$z0.ci[1], med_obj$d1.ci[1]),
+      CI_upper = c(med_obj$tau.ci[2], med_obj$z0.ci[2], med_obj$d1.ci[2]),
+      stringsAsFactors = FALSE
+    )
+  }
+  
+  med_plot_data <- bind_rows(
+    extract_med(med_out_bijak, "1. Overall Wise Gaming"),
+    extract_med(med_out_selfreg, "2. Sub: Self-Regulation"),
+    extract_med(med_out_healthy, "3. Sub: Healthy Content"),
+    extract_med(med_out_lifebal, "4. Sub: Life Balance")
+  )
+  
+  # Urutkan faktor agar tampil dari atas ke bawah
+  med_plot_data$Effect <- factor(med_plot_data$Effect, levels = rev(c("Total Effect", "ADE (Direct Effect)", "ACME (Indirect Effect)")))
+  med_plot_data$Mediator <- factor(med_plot_data$Mediator, levels = rev(c("1. Overall Wise Gaming", "2. Sub: Self-Regulation", "3. Sub: Healthy Content", "4. Sub: Life Balance")))
+  
+  p_med <- ggplot(med_plot_data, aes(x = Estimate, y = Effect, color = Mediator)) +
+    geom_vline(xintercept = 0, linetype = "dashed", color = "black", linewidth = 0.8) +
+    geom_pointrange(aes(xmin = CI_lower, xmax = CI_upper), position = position_dodge(width = 0.6), size = 1, linewidth = 1.2) +
+    scale_color_manual(values = c("1. Overall Wise Gaming" = "#333333", 
+                                  "2. Sub: Self-Regulation" = "#F8766D", 
+                                  "3. Sub: Healthy Content" = "#00BA38", 
+                                  "4. Sub: Life Balance" = "#619CFF")) +
+    theme_minimal(base_size = 12) +
+    labs(title = "Causal Mediation Analysis (Primary & Sub-dimensions)",
+         x = "Effect Size (with 95% Confidence Intervals)", y = "", color = "Mediator Model") +
+    theme(legend.position = "right", 
+          plot.title = element_text(face = "bold", hjust = 0.5),
+          axis.text.y = element_text(face = "bold", size = 11))
+  
+  ggsave("Figure_3_Combined_Mediation_Plot.png", plot = p_med, width = 10, height = 5, dpi = 300, bg = "white")
+  cat("[Success] Combined Mechanism Plot saved as 'Figure_3_Combined_Mediation_Plot.png'.\n")
+  
+  cat("\n[Success] Analisis Wise Gaming selesai. Output tersimpan di CSV.\n")
 }
 
 # ==========================================
