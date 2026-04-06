@@ -7,7 +7,7 @@ A repository to store R code and raw data for research.
 ```
 GOAT/
 ├── R/                  # R scripts for data analysis
-│   └── analysis.R      # Main analysis script
+│   └── R2 GA.R      # Main analysis script
 ├── data/
 │   └── raw/            # Raw, unprocessed data files
 └── README.md
