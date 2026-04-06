@@ -20,9 +20,9 @@ library(mediation)
 # ==========================================
 data <- read.csv("OGAT.csv", sep = ";")
 
-# [UPDATE]: Sesuai dataset terbaru (0 = Control, 1 = Intervention)
-# Mengubahnya menjadi factor dengan label yang jelas, 
-# 0 (Control) otomatis akan menjadi level pertama (Baseline mutlak)
+# [UPDATE]: Based on the latest dataset (0 = Control, 1 = Intervention)
+# Convert to factor with clear labels, 
+# 0 (Control) automatically becomes the first level (Absolute baseline)
 data$GROUP <- factor(data$GROUP, levels = c(0, 1), labels = c("Control", "Intervention"))
 
 data$TIME <- as.numeric(data$TIME) 
@@ -106,7 +106,7 @@ run_lmm_models <- function(vars) {
     anova_lmm <- anova(model_lmm)
     coefs <- summary(model_lmm)$coefficients
     
-    # Karena Control = Reference, nama koefisiennya otomatis "GROUPIntervention"
+    # Because Control = Reference, the coefficient name is automatically "GROUPIntervention:TIME"
     beta_interaction <- coefs["GROUPIntervention:TIME", "Estimate"]
     p_val_interaction <- anova_lmm["GROUP:TIME", "Pr(>F)"]
     f_val_interaction <- anova_lmm["GROUP:TIME", "F value"]
@@ -138,7 +138,7 @@ table_lmm_sub <- lmm_subscales$results
 # ==========================================
 cat("\n[Info] Exporting WIDE Regression Table directly to Microsoft Word...\n")
 tryCatch({
-  # Fungsi sjPlot otomatis membuat tabel format Wide dan langsung jadi .doc
+  # sjPlot automatically creates a Wide format table and directly outputs to .doc
   tab_model(
     lmm_primary$models[[1]], lmm_primary$models[[2]], lmm_primary$models[[3]], lmm_primary$models[[4]], lmm_primary$models[[5]],
     file = "Table_3_LMM_Regression_Primary.doc", 
@@ -155,7 +155,7 @@ tryCatch({
     title = "Table 2. Linear Mixed-Effects Models Predicting Subscale Outcomes (Part 1)",
     show.se = TRUE, show.stat = FALSE, show.ci = 0.95, collapse.ci = TRUE, p.style = "numeric_stars"
   )
-  cat("[Success] Tabel Word format WIDE berhasil dibuat (Silakan buka file .doc yang baru)\n")
+  cat("[Success] WIDE format Word tables successfully created (Please open the new .doc files)\n")
 }, error = function(e) { cat("[Error] Could not generate Word tables.\n") })
 
 # ==========================================
@@ -194,8 +194,8 @@ for (var in primary_variables) {
     merged_d <- post_d %>% inner_join(base_d, by = "RESPONDENT_ID") %>% mutate(Change = Post_Score - Base_Score) %>% drop_na(Change, GROUP)
     if(nrow(merged_d) < 2) next
     
-    # [KRUSIAL UNTUK FOREST PLOT]: 
-    # Urutan ini menentukan rumusan "Intervention minus Control"
+    # [CRUCIAL FOR FOREST PLOT]: 
+    # This order determines the "Intervention minus Control" formulation
     merged_d$GROUP <- factor(merged_d$GROUP, levels = c("Intervention", "Control")) 
     
     eff <- suppressWarnings(effectsize::hedges_g(Change ~ GROUP, data = merged_d))
@@ -250,14 +250,14 @@ p_forest <- ggplot(forest_data, aes(y = Timepoint, x = Hedges_g)) +
 ggsave("Figure_2_True_Forest_Plot_Primary.png", plot = p_forest, width = 11, height = 12, dpi = 300, bg = "white")
 cat("\n[Success] Forest Plot successfully generated and saved as 'Figure_2_True_Forest_Plot_Primary.png'.\n")
 
-# (Visualisasi Forest plot Subskala dihapus dari tampilan CLI agar fokus, file tetap sama logikanya)
+# (Subscale Forest plot visualization removed from CLI view for focus, file logic remains the same)
 
 # ==========================================
 # STAGE 10: CAUSAL MEDIATION ANALYSIS
 # ==========================================
 cat("\n[Info] Performing Causal Mediation Analysis...\n")
 mediation_data <- data_change %>% dplyr::select(RESPONDENT_ID, GROUP, Gender, change_Total_GAS, change_Assertiveness, change_GO_Bijak) %>% drop_na()
-# 1 = Intervensi, 0 = Kontrol
+# 1 = Intervention, 0 = Control
 mediation_data$GROUP_bin <- ifelse(mediation_data$GROUP == "Intervention", 1, 0)
 
 model_m_assert <- lm(change_Assertiveness ~ GROUP_bin + Gender, data = mediation_data)
@@ -304,7 +304,7 @@ sink()
 # ==========================================
 # STAGE 13: DISSECTING AGGRESSION SUB-VARIABLES (FIXED DIRECTION)
 # ==========================================
-cat("\n[Info] Membedah Sub-variabel Agresivitas (Sinkronisasi Arah)...\n")
+cat("\n[Info] Dissecting Aggression Sub-variables (Direction Synchronization)...\n")
 
 bpaq_subscales <- c("BPAQ_Physical", "BPAQ_Verbal", "BPAQ_Anger", "BPAQ_Hostility")
 forest_bpaq_results <- list()
@@ -319,15 +319,15 @@ for (var in bpaq_subscales) {
     
     if(nrow(merged_d) < 2) next
     
-    # [SINKRONISASI]: Memaksa urutan (Intervention, Control) 
-    # agar hasil Negatif (-) berarti Intervention lebih rendah (BAGUS)
+    # [SYNCHRONIZATION]: Forcing the order (Intervention, Control) 
+    # so Negative (-) means Intervention is lower (FAVORABLE)
     merged_d$GROUP <- factor(merged_d$GROUP, levels = c("Intervention", "Control"))
     
     eff <- suppressWarnings(effectsize::hedges_g(Change ~ GROUP, data = merged_d))
     tt <- t.test(Change ~ GROUP, data = merged_d)
     
-    # Tentukan Status Berdasarkan Angka
-    # Negatif (-) = Favorable (Turun), Positif (+) = Spike (Naik)
+    # Determine Status Based on Value
+    # Negative (-) = Favorable (Reduction), Positive (+) = Spike (Increase)
     res_g <- eff$Hedges_g
     stat_label <- ifelse(res_g < 0, "REDUCTION (Favorable)", "SPIKE (Not Favorable)")
     
@@ -343,22 +343,22 @@ for (var in bpaq_subscales) {
 
 table_bpaq_sub_final <- bind_rows(forest_bpaq_results)
 
-# Cetak hasil akhir yang sudah sinkron
-cat("\n--- Rincian Perubahan Sub-Variabel Agresivitas (SINKRON) ---\n")
+# Print the final synchronized results
+cat("\n--- Detailed Changes in Aggression Sub-variables (SYNCHRONIZED) ---\n")
 print(table_bpaq_sub_final, row.names = FALSE)
 
 
 # ==========================================
 # STAGE 14: ITEM-LEVEL CHANGE ANALYSIS FOR WISE GAMING
 # ==========================================
-cat("\n[Info] Menganalisis Perubahan Skor per Item pada Wise Gaming (GO_Bijak)...\n")
+cat("\n[Info] Analyzing Item-Level Score Changes in Wise Gaming (GO_Bijak)...\n")
 
-# Menyesuaikan dengan nama kolom terbaru (GO_Bijak1 hingga GO_Bijak15)
+# Adjusting to the latest column names (GO_Bijak1 to GO_Bijak15)
 wisegaming_items <- paste0("GO_Bijak", 1:15)
 
 missing_items <- setdiff(wisegaming_items, colnames(data))
 if(length(missing_items) > 0) {
-  cat("[Peringatan] Kolom item Wise Gaming berikut tidak ditemukan di dataset Anda:\n")
+  cat("[Warning] The following Wise Gaming item columns were not found in your dataset:\n")
   print(missing_items)
 } else {
   
@@ -389,16 +389,16 @@ if(length(missing_items) > 0) {
   table_item_change <- bind_rows(item_change_results)
   table_item_change <- table_item_change %>% arrange(desc(`Mean Change (Post3 - Pre)`))
   
-  cat("\n--- Rata-Rata Kenaikan Skor per Item Wise Gaming (Kelompok Intervensi) ---\n")
+  cat("\n--- Average Item Score Increase for Wise Gaming (Intervention Group) ---\n")
   print(table_item_change, row.names = FALSE)
   write.csv(table_item_change, "WiseGaming_Item_Change_Analysis.csv", row.names = FALSE)
   
   # ==========================================
   # STAGE 15: SUB-DIMENSION MEDIATION ANALYSIS
   # ==========================================
-  cat("\n[Info] Melakukan Analisis Mediasi berdasarkan Sub-Dimensi Wise Gaming...\n")
+  cat("\n[Info] Performing Mediation Analysis based on Wise Gaming Sub-Dimensions...\n")
   
-  # Agregasi skor untuk masing-masing Sub-dimensi berdasarkan kolom GO_Bijak1 - 15
+  # Aggregate scores for each Sub-dimension based on columns GO_Bijak1 - 15
   data <- data %>%
     mutate(
       WG_SelfRegulation = rowMeans(dplyr::select(., all_of(paste0("GO_Bijak", c(1:6, 9)))), na.rm = TRUE),
@@ -468,19 +468,19 @@ if(length(missing_items) > 0) {
   
   table_sub_mediation <- bind_rows(med_selfreg, med_healthy, med_lifebal)
   
-  cat("\n--- Hasil Analisis Mediasi per Sub-Dimensi Wise Gaming ---\n")
+  cat("\n--- Mediation Analysis Results per Wise Gaming Sub-Dimension ---\n")
   print(table_sub_mediation, row.names = FALSE)
   write.csv(table_sub_mediation, "WiseGaming_SubDimension_Mediation.csv", row.names = FALSE)
   
-  cat("\n[Success] Analisis Wise Gaming selesai. Output tersimpan di CSV.\n")
+  cat("\n[Success] Wise Gaming analysis completed. Output saved to CSV.\n")
 }
 
 # ==========================================
 # STAGE 16: INITIAL RECOVERY FRICTION ANALYSIS (POST-TEST 1)
 # ==========================================
-cat("\n[Info] Menganalisis Hubungan antara Perbaikan Wise Gaming dan Lonjakan Agresi di Bulan ke-1...\n")
+cat("\n[Info] Analyzing the Relationship Between Wise Gaming Improvement and Aggression Spike in Month 1...\n")
 
-# 1. Menghitung Perubahan (Change Score) Khusus untuk Post-test 1 (Bulan ke-1)
+# 1. Calculate Change Score Specifically for Post-test 1 (Month 1)
 data_t1 <- data %>%
   filter(TIME %in% c(0, 1)) %>%
   arrange(RESPONDENT_ID, TIME) %>%
@@ -492,34 +492,34 @@ data_t1 <- data %>%
     diff_Hostility = last(BPAQ_Hostility) - first(BPAQ_Hostility),
     .groups = 'drop'
   ) %>%
-  filter(GROUP == "Intervention") # Kita hanya melihat dinamika di kelompok Intervensi
+  filter(GROUP == "Intervention") # We are only observing the dynamics within the Intervention group
 
-# 2. Regresi: Apakah Perbaikan Wise Gaming memprediksi kenaikan Agresi di Bulan ke-1?
-# Model: Perubahan Agresi ~ Perubahan Wise Gaming + Perubahan Assertiveness
+# 2. Regression: Does Wise Gaming Improvement predict the Aggression spike in Month 1?
+# Model: Aggression Change ~ Wise Gaming Change + Assertiveness Change
 model_friction <- lm(diff_Total_BPAQ ~ diff_GO_Bijak + diff_Assertiveness, data = data_t1)
 summary_friction <- summary(model_friction)
 
-# 3. Regresi Khusus untuk Hostility (karena ini yang tadi paling signifikan lonjakannya)
+# 3. Specific Regression for Hostility (as this had the most significant spike)
 model_hostility_friction <- lm(diff_Hostility ~ diff_GO_Bijak + diff_Assertiveness, data = data_t1)
 summary_hostility <- summary(model_hostility_friction)
 
-cat("\n--- HASIL REGRESI: PREDIKTOR AGRESI PADA BULAN KE-1 (POST-TEST 1) ---\n")
-cat("Variabel Dependen: Perubahan Total Agresi (BPAQ)\n")
+cat("\n--- REGRESSION RESULTS: PREDICTORS OF AGGRESSION IN MONTH 1 (POST-TEST 1) ---\n")
+cat("Dependent Variable: Change in Total Aggression (BPAQ)\n")
 print(coef(summary_friction))
 
-cat("\nVariabel Dependen: Perubahan Hostility (Faset Kognitif Agresi)\n")
+cat("\nDependent Variable: Change in Hostility (Cognitive Facet of Aggression)\n")
 print(coef(summary_hostility))
 
-# 4. Korelasi Sederhana untuk memperkuat narasi
+# 4. Simple Correlation to strengthen the narrative
 cor_val <- cor(data_t1$diff_GO_Bijak, data_t1$diff_Total_BPAQ)
-cat(sprintf("\nKorelasi antara Perbaikan Wise Gaming & Kenaikan Agresi di Bulan 1: r = %.3f\n", cor_val))
+cat(sprintf("\nCorrelation between Wise Gaming Improvement & Aggression Spike in Month 1: r = %.3f\n", cor_val))
 
 # ==========================================
 # STAGE END: EXPORT AND PRINT TO CONSOLE
 # ==========================================
 cat("\n[Info] Finalizing output... Printing to console and saving to file.\n")
 
-# Menggunakan split = TRUE agar output tampil di RStudio Console DAN tersimpan ke file .txt
+# Using split = TRUE so output appears in the RStudio Console AND is saved to the .txt file
 sink("Publication_Results_Summary.txt", split = TRUE)
 
 cat("\n=======================================================\n")
