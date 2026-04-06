@@ -279,6 +279,10 @@ cat("\n[Info] Running Linear Mixed-Effects Models (LMM) with robust BOBYQA optim
 run_lmm_models <- function(vars) {
   res_list <- list()
   mod_list <- list()
+  # Correction fix for Hedges' g calculation ensuring accurate df for repeated measures
+  n_subj <- length(unique(data$RESPONDENT_ID))
+  correction_factor <- 1 - (3 / (4 * (n_subj - 2) - 1))
+  
   for (var_y in vars) {
     lmm_formula <- as.formula(paste(var_y, "~ GROUP * TIME + Gender + (1 | RESPONDENT_ID)"))
     
@@ -296,7 +300,6 @@ run_lmm_models <- function(vars) {
     eta_sq <- suppressWarnings(effectsize::eta_squared(model_lmm, partial = TRUE))
     interaction_eta <- eta_sq[eta_sq$Parameter == "GROUP:TIME", "Eta2_partial"]
     cohens_d <- 2 * sqrt(interaction_eta / (1 - interaction_eta))
-    correction_factor <- 1 - (3 / (4 * (nrow(data) - 2) - 1))
     
     res_list[[var_y]] <- data.frame(
       Variable = var_y, `Main Effect GROUP (p)` = round(anova_lmm["GROUP", "Pr(>F)"], 4), `Main Effect TIME (p)` = round(anova_lmm["TIME", "Pr(>F)"], 4),
