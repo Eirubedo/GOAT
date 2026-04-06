@@ -647,14 +647,19 @@ if(length(missing_items) > 0) {
   
   # Ekstrak data model mediasi ke dalam data.frame untuk ggplot2
   extract_med <- function(med_obj, name) {
-    data.frame(
+    df <- data.frame(
       Mediator = name,
       Effect = c("Total Effect", "ADE (Direct Effect)", "ACME (Indirect Effect)"),
       Estimate = c(med_obj$tau.coef, med_obj$z0, med_obj$d1),
       CI_lower = c(med_obj$tau.ci[1], med_obj$z0.ci[1], med_obj$d1.ci[1]),
       CI_upper = c(med_obj$tau.ci[2], med_obj$z0.ci[2], med_obj$d1.ci[2]),
+      p_val = c(med_obj$tau.p, med_obj$z0.p, med_obj$d1.p),
       stringsAsFactors = FALSE
     )
+    df$stat_label <- sprintf("B = %.2f [%.2f, %.2f], p %s", 
+                             df$Estimate, df$CI_lower, df$CI_upper, 
+                             ifelse(df$p_val < 0.001, "< 0.001", sprintf("= %.3f", df$p_val)))
+    return(df)
   }
   
   med_plot_data <- bind_rows(
@@ -668,13 +673,18 @@ if(length(missing_items) > 0) {
   med_plot_data$Effect <- factor(med_plot_data$Effect, levels = rev(c("Total Effect", "ADE (Direct Effect)", "ACME (Indirect Effect)")))
   med_plot_data$Mediator <- factor(med_plot_data$Mediator, levels = rev(c("1. Overall Wise Gaming", "2. Sub: Self-Regulation", "3. Sub: Healthy Content", "4. Sub: Life Balance")))
   
+  # Tentukan posisi teks stat_label agar rapi di sebelah kanan
+  max_x_med <- max(med_plot_data$CI_upper, na.rm = TRUE)
+  
   p_med <- ggplot(med_plot_data, aes(x = Estimate, y = Effect, color = Mediator)) +
     geom_vline(xintercept = 0, linetype = "dashed", color = "black", linewidth = 0.8) +
     geom_pointrange(aes(xmin = CI_lower, xmax = CI_upper), position = position_dodge(width = 0.6), size = 1, linewidth = 1.2) +
+    geom_text(aes(x = max_x_med + 0.5, label = stat_label), position = position_dodge(width = 0.6), hjust = 0, size = 3.5, fontface = "italic", show.legend = FALSE) +
     scale_color_manual(values = c("1. Overall Wise Gaming" = "#333333", 
                                   "2. Sub: Self-Regulation" = "#F8766D", 
                                   "3. Sub: Healthy Content" = "#00BA38", 
                                   "4. Sub: Life Balance" = "#619CFF")) +
+    scale_x_continuous(expand = expansion(mult = c(0.1, 0.7))) +
     theme_minimal(base_size = 12) +
     labs(title = "Causal Mediation Analysis (Primary & Sub-dimensions)",
          x = "Effect Size (with 95% Confidence Intervals)", y = "", color = "Mediator Model") +
