@@ -6,6 +6,8 @@
 # R project files
 *.Rproj.user
 
-# Output files
-*.html
-*.pdf
+# Generated output files (in dedicated output directories)
+output/*.html
+output/*.pdf
+results/*.html
+results/*.pdf
