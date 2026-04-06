@@ -1,0 +1,11 @@
+# R history and session data
+.Rhistory
+.RData
+.Ruserdata
+
+# R project files
+*.Rproj.user
+
+# Output files
+*.html
+*.pdf
