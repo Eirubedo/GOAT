@@ -1,0 +1,177 @@
+<svg width="100%" viewBox="0 0 680 980" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M2 1L8 5L2 9" fill="none" stroke="context-stroke" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+    </marker>
+    <style>
+      text { font-family: Arial, sans-serif; fill: #1a1a1a; }
+      .th { font-size: 14px; font-weight: 500; }
+      .ts { font-size: 12px; font-weight: 400; }
+      .arr { stroke: #555; stroke-width: 1.5; fill: none; }
+      .c-purple rect { fill: #EEEDFE; stroke: #534AB7; }
+      .c-purple text { fill: #3C3489; }
+      .c-teal rect { fill: #E1F5EE; stroke: #0F6E56; }
+      .c-teal text { fill: #085041; }
+      .c-coral rect { fill: #FAECE7; stroke: #993C1D; }
+      .c-coral text { fill: #712B13; }
+      .c-gray rect { fill: #F1EFE8; stroke: #5F5E5A; }
+      .c-gray text { fill: #444441; }
+    </style>
+  </defs>
+
+  <!-- ENROLMENT label -->
+  <text class="ts" x="30" y="50" text-anchor="middle" transform="rotate(-90,30,60)" font-weight="500">Enrolment</text>
+
+  <!-- Total Population -->
+  <g class="c-purple">
+    <rect x="190" y="20" width="300" height="52" rx="8" stroke-width="0.5"/>
+    <text class="th" x="340" y="40" text-anchor="middle" dominant-baseline="central">Total population assessed</text>
+    <text class="ts" x="340" y="58" text-anchor="middle" dominant-baseline="central">n = 561</text>
+  </g>
+
+  <line x1="340" y1="72" x2="340" y2="100" class="arr" marker-end="url(#arrow)"/>
+
+  <!-- Excluded box -->
+  <g class="c-gray">
+    <rect x="430" y="100" width="220" height="68" rx="8" stroke-width="0.5"/>
+    <text class="th" x="540" y="118" text-anchor="middle" dominant-baseline="central">Excluded (n = 491)</text>
+    <text class="ts" x="540" y="136" text-anchor="middle" dominant-baseline="central">Did not meet criteria: 428</text>
+    <text class="ts" x="540" y="152" text-anchor="middle" dominant-baseline="central">Not randomised: 63</text>
+  </g>
+  <line x1="430" y1="134" x2="394" y2="134" class="arr" marker-end="url(#arrow)" stroke-dasharray="4 3"/>
+
+  <!-- Final sample -->
+  <g class="c-purple">
+    <rect x="190" y="100" width="200" height="52" rx="8" stroke-width="0.5"/>
+    <text class="th" x="290" y="120" text-anchor="middle" dominant-baseline="central">Final sample</text>
+    <text class="ts" x="290" y="138" text-anchor="middle" dominant-baseline="central">n = 70</text>
+  </g>
+
+  <line x1="290" y1="152" x2="290" y2="200" class="arr" marker-end="url(#arrow)"/>
+
+  <!-- ALLOCATION label -->
+  <text class="ts" x="30" y="260" text-anchor="middle" transform="rotate(-90,30,270)" font-weight="500">Allocation</text>
+
+  <line x1="290" y1="200" x2="150" y2="200" stroke="#555" stroke-width="1" fill="none"/>
+  <line x1="290" y1="200" x2="530" y2="200" stroke="#555" stroke-width="1" fill="none"/>
+  <line x1="150" y1="200" x2="150" y2="220" class="arr" marker-end="url(#arrow)"/>
+  <line x1="530" y1="200" x2="530" y2="220" class="arr" marker-end="url(#arrow)"/>
+
+  <!-- Intervention group box -->
+  <g class="c-teal">
+    <rect x="30" y="220" width="240" height="52" rx="8" stroke-width="0.5"/>
+    <text class="th" x="150" y="240" text-anchor="middle" dominant-baseline="central">Intervention group</text>
+    <text class="ts" x="150" y="258" text-anchor="middle" dominant-baseline="central">Lembuak Village — n = 35</text>
+  </g>
+
+  <!-- Control group box -->
+  <g class="c-coral">
+    <rect x="410" y="220" width="240" height="52" rx="8" stroke-width="0.5"/>
+    <text class="th" x="530" y="240" text-anchor="middle" dominant-baseline="central">Control group</text>
+    <text class="ts" x="530" y="258" text-anchor="middle" dominant-baseline="central">Nyurlembang Village — n = 35</text>
+  </g>
+
+  <!-- INTERVENTION label -->
+  <text class="ts" x="30" y="400" text-anchor="middle" transform="rotate(-90,30,400)" font-weight="500">Intervention</text>
+
+  <line x1="150" y1="272" x2="150" y2="310" class="arr" marker-end="url(#arrow)"/>
+  <line x1="530" y1="272" x2="530" y2="310" class="arr" marker-end="url(#arrow)"/>
+
+  <!-- Intervention description box -->
+  <g class="c-teal">
+    <rect x="20" y="310" width="260" height="135" rx="8" stroke-width="0.5"/>
+    <text class="th" x="150" y="332" text-anchor="middle" dominant-baseline="central">HE + AT (5 sessions total)</text>
+    <text class="ts" x="150" y="352" text-anchor="middle" dominant-baseline="central">Phase 1 — HE: 4 sessions</text>
+    <text class="ts" x="150" y="368" text-anchor="middle" dominant-baseline="central">15–18 Mar, 45–60 min each</text>
+    <text class="ts" x="150" y="388" text-anchor="middle" dominant-baseline="central">Phase 2 — AT: 5 sessions</text>
+    <text class="ts" x="150" y="404" text-anchor="middle" dominant-baseline="central">20–31 Mar, structured subgroups</text>
+    <text class="ts" x="150" y="425" text-anchor="middle" dominant-baseline="central">Daily mentoring: 2–8 Apr</text>
+  </g>
+
+  <!-- Control description box -->
+  <g class="c-coral">
+    <rect x="400" y="310" width="260" height="135" rx="8" stroke-width="0.5"/>
+    <text class="th" x="530" y="332" text-anchor="middle" dominant-baseline="central">HE + Active Attention Control</text>
+    <text class="ts" x="530" y="352" text-anchor="middle" dominant-baseline="central">Phase 1 — HE: 4 sessions</text>
+    <text class="ts" x="530" y="368" text-anchor="middle" dominant-baseline="central">15–18 Mar, 45–60 min each</text>
+    <text class="ts" x="530" y="388" text-anchor="middle" dominant-baseline="central">Phase 2 — HE reinforcement</text>
+    <text class="ts" x="530" y="404" text-anchor="middle" dominant-baseline="central">5 structured sessions: 21-29 Mar</text>
+    <text class="ts" x="530" y="425" text-anchor="middle" dominant-baseline="central">Daily mentoring: 2–8 Apr</text>
+  </g>
+
+  <!-- FOLLOW-UP label -->
+  <text class="ts" x="30" y="570" text-anchor="middle" transform="rotate(-90,30,570)" font-weight="500">Follow-up</text>
+
+  <line x1="150" y1="445" x2="150" y2="500" class="arr" marker-end="url(#arrow)"/>
+  <line x1="530" y1="445" x2="530" y2="500" class="arr" marker-end="url(#arrow)"/>
+
+  <!-- Measurement boxes -->
+  <g class="c-gray">
+    <rect x="20" y="500" width="260" height="100" rx="8" stroke-width="0.5"/>
+    <text class="th" x="150" y="520" text-anchor="middle" dominant-baseline="central">Measurements (4 time points)</text>
+    <text class="ts" x="150" y="540" text-anchor="middle" dominant-baseline="central">T0 baseline: 14 Mar</text>
+    <text class="ts" x="150" y="556" text-anchor="middle" dominant-baseline="central">T1 post-HE: 19 Mar</text>
+    <text class="ts" x="150" y="572" text-anchor="middle" dominant-baseline="central">T2 post-AT: 1 Apr</text>
+    <text class="ts" x="150" y="588" text-anchor="middle" dominant-baseline="central">T3 follow-up: 15 Apr</text>
+  </g>
+
+  <g class="c-gray">
+    <rect x="400" y="500" width="260" height="100" rx="8" stroke-width="0.5"/>
+    <text class="th" x="530" y="520" text-anchor="middle" dominant-baseline="central">Measurements (4 time points)</text>
+    <text class="ts" x="530" y="540" text-anchor="middle" dominant-baseline="central">T0 baseline: 14 Mar</text>
+    <text class="ts" x="530" y="556" text-anchor="middle" dominant-baseline="central">T1 post-HE: 19 Mar</text>
+    <text class="ts" x="530" y="572" text-anchor="middle" dominant-baseline="central">T2 post-HE reinforcement: 1 Apr</text>
+    <text class="ts" x="530" y="588" text-anchor="middle" dominant-baseline="central">T3 follow-up: 15 Apr</text>
+  </g>
+
+  <!-- Lost to follow up -->
+  <g class="c-gray">
+    <rect x="20" y="618" width="260" height="36" rx="8" stroke-width="0.5"/>
+    <text class="ts" x="150" y="636" text-anchor="middle" dominant-baseline="central">Lost to follow-up: n = 0</text>
+  </g>
+
+  <g class="c-gray">
+    <rect x="400" y="618" width="260" height="36" rx="8" stroke-width="0.5"/>
+    <text class="ts" x="530" y="636" text-anchor="middle" dominant-baseline="central">Lost to follow-up: n = 0</text>
+  </g>
+
+  <line x1="150" y1="600" x2="150" y2="618" class="arr" marker-end="url(#arrow)"/>
+  <line x1="530" y1="600" x2="530" y2="618" class="arr" marker-end="url(#arrow)"/>
+
+  <!-- ANALYSIS label -->
+  <text class="ts" x="10" y="730" text-anchor="middle" transform="rotate(-90,30,750)" font-weight="500">Analysis</text>
+
+  <line x1="150" y1="654" x2="150" y2="700" class="arr" marker-end="url(#arrow)"/>
+  <line x1="530" y1="654" x2="530" y2="700" class="arr" marker-end="url(#arrow)"/>
+
+  <!-- Analysis boxes -->
+  <g class="c-teal">
+    <rect x="20" y="700" width="260" height="68" rx="8" stroke-width="0.5"/>
+    <text class="th" x="150" y="722" text-anchor="middle" dominant-baseline="central">Analysed — n = 35</text>
+    <text class="ts" x="150" y="742" text-anchor="middle" dominant-baseline="central">Per protocol, 0% dropout</text>
+    <text class="ts" x="150" y="758" text-anchor="middle" dominant-baseline="central">No imputation required</text>
+  </g>
+
+  <g class="c-coral">
+    <rect x="400" y="700" width="260" height="68" rx="8" stroke-width="0.5"/>
+    <text class="th" x="530" y="722" text-anchor="middle" dominant-baseline="central">Analysed — n = 35</text>
+    <text class="ts" x="530" y="742" text-anchor="middle" dominant-baseline="central">Per protocol, 0% dropout</text>
+    <text class="ts" x="530" y="758" text-anchor="middle" dominant-baseline="central">No imputation required</text>
+  </g>
+
+  <!-- Joint analysis -->
+  <line x1="150" y1="768" x2="150" y2="820" stroke="#555" stroke-width="1" fill="none"/>
+  <line x1="530" y1="768" x2="530" y2="820" stroke="#555" stroke-width="1" fill="none"/>
+  <line x1="150" y1="820" x2="530" y2="820" stroke="#555" stroke-width="1" fill="none"/>
+  <line x1="340" y1="820" x2="340" y2="850" class="arr" marker-end="url(#arrow)"/>
+
+  <g class="c-purple">
+    <rect x="160" y="850" width="360" height="68" rx="8" stroke-width="0.5"/>
+    <text class="th" x="340" y="870" text-anchor="middle" dominant-baseline="central">Combined analysis — n = 70</text>
+    <text class="ts" x="340" y="890" text-anchor="middle" dominant-baseline="central">LMM with demographic covariates</text>
+    <text class="ts" x="340" y="906" text-anchor="middle" dominant-baseline="central">Mediation analysis (Bayesian Monte Carlo, change scores)</text>
+  </g>
+
+  <!-- Note at bottom -->
+  <text class="ts" x="340" y="945" text-anchor="middle" font-style="italic">GAS-21, BPAQ, SDQ, GO_Bijak, Assertiveness Scale — all self-report</text>
+</svg>
