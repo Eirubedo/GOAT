@@ -191,23 +191,39 @@ if("Gaming_Dur_Num" %in% colnames(baseline_data)) {
 }
 
 # ==========================================
-# STAGE 1.7: SPECIFIC BASELINE CORRELATIONS SOR GENDER & SES
+# STAGE 1.7: SPECIFIC BASELINE CORRELATIONS FOR MANUSCRIPT CLAIMS
 # ==========================================
-cat("\n[Info] Computing exact rho and p-values for Gender & SES...\n")
-# Gender (0 = Male, 1 = Female) vs Anger and Total BPAQ
-cor_gender_anger <- cor.test(baseline_data$Gender_Num, baseline_data$BPAQ_Anger, method = "spearman", exact = FALSE)
-cor_gender_bpaq <- cor.test(baseline_data$Gender_Num, baseline_data$Total_BPAQ, method = "spearman", exact = FALSE)
+cat("\n[Info] Computing exact rho and p-values for manuscript claims (Gender, SES, Gaming Duration vs Outcomes)...\n")
 
-# SES (0 = Lower/Same, 1 = Higher) vs Wise Gaming (GO_Bijak)
-if("SocEco_Num" %in% colnames(baseline_data)) {
-  baseline_data_ses <- baseline_data %>% filter(!is.na(SocEco_Num))
-  cor_ses_bijak <- cor.test(baseline_data_ses$SocEco_Num, baseline_data_ses$GO_Bijak, method = "spearman", exact = FALSE)
-  
-  cat("--- Specific Baseline Correlations for Gender & SES ---\n")
-  cat(sprintf("1. Gender vs BPAQ Anger     : rho = %.3f, p-value = %.4f %s\n", cor_gender_anger$estimate, cor_gender_anger$p.value, ifelse(cor_gender_anger$p.value < 0.05, "*", "")))
-  cat(sprintf("2. Gender vs Total BPAQ     : rho = %.3f, p-value = %.4f %s\n", cor_gender_bpaq$estimate, cor_gender_bpaq$p.value, ifelse(cor_gender_bpaq$p.value < 0.05, "*", "")))
-  cat(sprintf("3. SES vs Wise Gaming       : rho = %.3f, p-value = %.4f %s\n", cor_ses_bijak$estimate, cor_ses_bijak$p.value, ifelse(cor_ses_bijak$p.value < 0.05, "*", "")))
+manuscript_cors <- list()
+predictors <- c("Gender_Num", "SocEco_Num", "Gaming_Dur_Num")
+pred_labels <- c("Gender (1=Female)", "SES (1=Higher)", "Gaming Duration")
+outcomes <- c("Total_BPAQ", "BPAQ_Anger", "Total_SDQ", "Total_GAS", "GO_Bijak")
+
+for (i in seq_along(predictors)) {
+  pred <- predictors[i]
+  pred_lbl <- pred_labels[i]
+  if(pred %in% colnames(baseline_data)) {
+    valid_data <- baseline_data %>% filter(!is.na(.[[pred]]))
+    for (out in outcomes) {
+      if(out %in% colnames(valid_data)) {
+        ctest <- cor.test(valid_data[[pred]], valid_data[[out]], method = "spearman", exact = FALSE)
+        manuscript_cors[[paste(pred, out)]] <- data.frame(
+          Predictor = pred_lbl,
+          Outcome = out,
+          rho = round(ctest$estimate, 3),
+          p_value = round(ctest$p.value, 4),
+          Significance = ifelse(ctest$p.value < 0.05, "*", ""),
+          stringsAsFactors = FALSE
+        )
+      }
+    }
+  }
 }
+table_manuscript_cors <- bind_rows(manuscript_cors)
+
+cat("--- Specific Baseline Correlations for Manuscript ---\n")
+print(table_manuscript_cors, row.names = FALSE)
 
 
 # ==========================================
@@ -695,13 +711,11 @@ if(exists("cor_gas")) {
   cat(sprintf("   Gaming Duration vs Wise Gaming: rho = %.3f, p-value = %.4f %s\n", cor_gobijak$estimate, cor_gobijak$p.value, ifelse(cor_gobijak$p.value < 0.05, "*", "")))
 }
 
-cat("\n--- 3.5 Specific Baseline Correlations for Gender & SES ---\n")
-if(exists("cor_gender_anger")) {
-  cat(sprintf("   Gender vs BPAQ Anger     : rho = %.3f, p-value = %.4f %s\n", cor_gender_anger$estimate, cor_gender_anger$p.value, ifelse(cor_gender_anger$p.value < 0.05, "*", "")))
-  cat(sprintf("   Gender vs Total BPAQ     : rho = %.3f, p-value = %.4f %s\n", cor_gender_bpaq$estimate, cor_gender_bpaq$p.value, ifelse(cor_gender_bpaq$p.value < 0.05, "*", "")))
-  if(exists("cor_ses_bijak")) {
-    cat(sprintf("   SES vs Wise Gaming       : rho = %.3f, p-value = %.4f %s\n", cor_ses_bijak$estimate, cor_ses_bijak$p.value, ifelse(cor_ses_bijak$p.value < 0.05, "*", "")))
-  }
+cat("\n--- 3.5 Specific Baseline Correlations for Manuscript ---\n")
+if(exists("table_manuscript_cors")) {
+  print(table_manuscript_cors, row.names = FALSE)
+} else {
+  cat("Data not available.\n")
 }
 
 cat("\n--- 4. Linear Mixed-Effects Models (LMM) Summary - Primary ---\n")
